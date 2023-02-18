@@ -3,17 +3,19 @@ require('isomorphic-fetch');
 
 function addDestinationInfo(document, name, diameter, star, distance, moons, imageUrl) {
     // Here is the HTML formatting for our mission target div.
-    /*
+    const missionTarget = document.getElementById("missionTarget");
+    missionTarget.innerHTML = `
                  <h2>Mission Destination</h2>
                  <ol>
-                     <li>Name: </li>
-                     <li>Diameter: </li>
+                     <li>Name: ${name}</li>
+                     <li>Diameter: ${diameter}</li>
                      <li>Star: ${star}</li>
-                     <li>Distance from Earth: </li>
-                     <li>Number of Moons: </li>
+                     <li>Distance from Earth: ${distance}</li>
+                     <li>Number of Moons: ${moons}</li>
                  </ol>
-                 <img src="">
-    */
+                 <img src="${imageUrl}">
+                 `;
+
 }
 
 function validateInput(testInput = "") {
@@ -39,58 +41,66 @@ function formSubmission(document, list, pilot, copilot, fuelLevel, cargoLevel) {
     let clearToLaunch = true;
     const statusList = list.querySelectorAll('li');
     const launchStatus = document.getElementById("launchStatus");
+    let inputsValidated = false;
 
-    while (validateInput(pilot) !== "Not a Number"){
-        pilot = prompt("Please enter a text name for the pilot.");
-        alert("Pilot name has been updated.")
+    if (validateInput(pilot) !== "Not a Number") {
+        pilot = alert("Please enter a TEXT name for the PILOT.");
     }
-    while (validateInput(copilot) !== "Not a Number"){
-        copilot = prompt("Please enter a text name for the copilot.");
-        alert("Co-pilot name has been updated.")
-    }   
-    while (validateInput(fuelLevel) !== "Is a Number") {
-        fuelLevel = prompt("Please enter a numerical value for fuel level.");
-        alert("Fuel level has has been updated.")
+    else if (validateInput(copilot) !== "Not a Number") {
+        copilot = alert("Please enter a TEXT name for the CO-PILOT.");
     }
-    while (validateInput(cargoLevel) !== "Is a Number") {
-        cargoLevel = prompt("Please enter a numerical value for cargo mass.");
-        alert("Cargo mass has been updated.")
+    else if (validateInput(fuelLevel) !== "Is a Number") {
+        fuelLevel = alert("Please enter a NUMBER for FUEL LEVEL.");
+    }
+    else if (validateInput(cargoLevel) !== "Is a Number") {
+        cargoLevel = alert("Please enter a NUMBER for CARGO MASS.");
+
+    } else {
+        inputsValidated = true;
     }
 
-    statusList[0].innerHTML = `Pilot ${pilot} Ready`;
-    statusList[1].innerHTML = `Co-pilot ${copilot} Ready`;
+    if (inputsValidated) {
+        statusList[0].innerHTML = `Pilot ${pilot} Ready`;
+        statusList[1].innerHTML = `Co-pilot ${copilot} Ready`;
+    }
 
-    if (fuelLevel < 10000) {
+    if (fuelLevel < 10000 && inputsValidated) {
         list.style.visibility = "visible";
         statusList[2].innerHTML = `NOT ENOUGH FUEL! We have ${fuelLevel} liters and we need at least 10,000 liters.`;
         haltLaunch();
+    } else {
+        statusList[2].innerHTML = "Fuel level high enough for launch";
     }
 
-    if (cargoLevel > 10000) {
+    if (cargoLevel > 10000 && inputsValidated) {
         list.style.visibility = "visible";
         statusList[3].innerHTML = `TOO MUCH MASS FOR TAKEOFF! We need 10,000 kilograms or less.`;
         haltLaunch();
+    } else {
+        statusList[3].innerHTML = "Cargo mass low enough for launch";
     }
 
-    if (clearToLaunch) {
+    if (clearToLaunch && inputsValidated) {
         launchStatus.style.color = "green";
         launchStatus.innerHTML = "Shuttle is ready for launch";
+        list.style.visibility = "hidden";
     }
-
-
 
 }
 
 async function myFetch() {
     let planetsReturned;
-
-    planetsReturned = await fetch().then(function (response) {
+    planetsReturned = await fetch("https://handlers.education.launchcode.org/static/planets.json").then(function (response) {
+        return response.json().then(function (json) {
+            return json;
+        });
     });
-
     return planetsReturned;
 }
 
 function pickPlanet(planets) {
+    let planetIndex = Math.floor(Math.random() * planets.length);
+    return planets[planetIndex];
 }
 
 module.exports.addDestinationInfo = addDestinationInfo;
